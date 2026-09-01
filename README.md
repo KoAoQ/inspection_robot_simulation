@@ -27,7 +27,8 @@ workspace while both Git histories remain independent:
 ```bash
 git clone git@github.com:KoAoQ/inspection_robot_ws.git \
   ~/inspection_robot_ws_sim
-git clone <simulation-repository-url> ~/inspection_robot_simulation
+git clone git@github.com:KoAoQ/inspection_robot_simulation.git \
+  ~/inspection_robot_simulation
 
 ln -s ~/inspection_robot_simulation \
   ~/inspection_robot_ws_sim/src/inspection_robot_simulation
@@ -51,7 +52,7 @@ source /opt/ros/humble/setup.bash
 source /path/to/inspection_robot_ws/install/setup.bash
 
 mkdir -p ~/inspection_robot_sim_ws/src
-git clone <simulation-repository-url> \
+git clone git@github.com:KoAoQ/inspection_robot_simulation.git \
   ~/inspection_robot_sim_ws/src/inspection_robot_simulation
 cd ~/inspection_robot_sim_ws
 
