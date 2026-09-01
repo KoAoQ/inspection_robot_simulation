@@ -1,0 +1,6 @@
+repositories:
+  inspection_robot_ws:
+    type: git
+    url: git@github.com:KoAoQ/inspection_robot_ws.git
+    version: 4cd1320
+
