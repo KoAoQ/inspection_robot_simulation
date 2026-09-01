@@ -1,80 +1,91 @@
 # Inspection Robot Simulation
 
-Gazebo Classic simulation for the WheelTec S200 inspection robot on ROS 2
-Humble. This repository contains simulation-only launch files, Gazebo plugins,
-virtual sensors, worlds, maps, and Nav2 parameter overrides.
+Independent ROS 2 Humble and Gazebo Classic workspace for simulation and
+algorithm validation of the WheelTec S200 inspection robot.
 
-The real-robot repository remains the source of shared interfaces, meshes,
-localization, navigation, safety, and velocity-management packages:
+This repository is self-contained: simulation source, the robot model,
+simulation-safe control and safety packages, localization/navigation packages,
+and the locally rebuilt Smac planner are all under `src/`. It does not require
+a clone or an installed overlay of the real-robot repository.
+
+## Repository boundary
+
+- This repository is the only destination for local simulation development.
+- It never launches the real chassis serial, lidar, Astra camera, or hardware
+  bringup nodes.
+- Gazebo-specific collision, friction, sensor, world, and launch files live in
+  `src/inspection_robot_simulation`.
+- Simulation uses its own Nav2 parameters and `use_sim_time: true`.
+- The real-robot repository and workspace remain separate and unchanged.
+
+## Layout
 
 ```text
-git@github.com:KoAoQ/inspection_robot_ws.git
+inspection_robot_simulation/
+├── src/
+│   ├── inspection_robot_simulation/
+│   ├── inspection_robot_description/
+│   ├── inspection_robot_interfaces/
+│   ├── inspection_robot_core/
+│   ├── inspection_robot_safety/
+│   ├── inspection_robot_maps/
+│   ├── inspection_robot_localization/
+│   ├── inspection_robot_navigation/
+│   └── third_party/nav2_smac_planner/
+├── build/                         # generated, ignored
+├── install/                       # generated, ignored
+└── log/                           # generated, ignored
 ```
 
-## Isolation boundary
-
-- No real serial, lidar, camera, or device nodes are launched.
-- Gazebo-specific collision, friction, and sensor plugins live here.
-- Simulation uses `use_sim_time: true`.
-- Simulation Nav2 uses its own `config/nav2_sim.yaml`.
-- Real-robot launch files and parameters are not modified by this repository.
-
-## Use in a local simulation-validation clone
-
-The real-robot repository may be cloned locally as a simulation-validation
-workspace while both Git histories remain independent:
+## Install dependencies
 
 ```bash
-git clone git@github.com:KoAoQ/inspection_robot_ws.git \
-  ~/inspection_robot_ws_sim
-git clone git@github.com:KoAoQ/inspection_robot_simulation.git \
-  ~/inspection_robot_simulation
+cd ~/inspection_robot_simulation
+source /opt/ros/humble/setup.bash
+rosdep install --from-paths src --ignore-src -r -y
+```
 
-ln -s ~/inspection_robot_simulation \
-  ~/inspection_robot_ws_sim/src/inspection_robot_simulation
+The host uses its own ROS Humble and OMPL installation. Do not copy `build/` or
+`install/` artifacts from the ARM64 robot workspace.
 
-cd ~/inspection_robot_ws_sim
+## Build
+
+```bash
+cd ~/inspection_robot_simulation
 source /opt/ros/humble/setup.bash
 colcon build --symlink-install --allow-overriding nav2_smac_planner
 source install/setup.bash
 ```
 
-Add `/src/inspection_robot_simulation` to the base clone's local
-`.git/info/exclude` so the link cannot be accidentally committed there.
-
-## Build as a separate overlay
-
-Build and source the real-robot workspace first, then build this repository in
-a separate overlay workspace:
-
-```bash
-source /opt/ros/humble/setup.bash
-source /path/to/inspection_robot_ws/install/setup.bash
-
-mkdir -p ~/inspection_robot_sim_ws/src
-git clone git@github.com:KoAoQ/inspection_robot_simulation.git \
-  ~/inspection_robot_sim_ws/src/inspection_robot_simulation
-cd ~/inspection_robot_sim_ws
-
-rosdep install --from-paths src --ignore-src -r -y
-colcon build --symlink-install
-source install/setup.bash
-```
-
-The pinned real-robot source revision is recorded in
-`inspection_robot_simulation.repos`.
-
 ## Run
 
 ```bash
+cd ~/inspection_robot_simulation
+source /opt/ros/humble/setup.bash
+source install/setup.bash
 export ROS_LOCALHOST_ONLY=1
 export GAZEBO_IP=127.0.0.1
 ros2 launch inspection_robot_simulation simulation_navigation.launch.py
 ```
 
-For headless validation:
+Headless validation:
 
 ```bash
 ros2 launch inspection_robot_simulation \
   simulation_navigation.launch.py gui:=false rviz:=false
 ```
+
+## Commit simulation changes
+
+Run all simulation Git operations from this repository root:
+
+```bash
+cd ~/inspection_robot_simulation
+git add src README.md .gitignore
+git commit -m "feat: describe the simulation change"
+git push origin main
+```
+
+Do not commit simulation work from `~/inspection_robot_ws_sim`; that directory
+is an old integration clone of the real-robot repository and is no longer the
+simulation development workspace.

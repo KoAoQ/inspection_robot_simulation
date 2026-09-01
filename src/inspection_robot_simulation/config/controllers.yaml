@@ -1,0 +1,8 @@
+# Common S200 simulation kinematics. The Gazebo Classic differential-drive
+# plugin consumes the same values in inspection_robot_s200_sim.urdf.xacro.
+wheel_radius: 0.100
+wheel_separation: 0.5884
+front_wheel_x: 0.176
+rear_wheel_x: -0.176
+max_wheel_torque: 20.0
+max_wheel_acceleration: 2.5
